@@ -10,9 +10,11 @@ import SwiftData
 
 @main
 struct VocapitaApp: App {
+    @StateObject private var appState = AppState()
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            VoiceRecording.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -25,7 +27,25 @@ struct VocapitaApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Group {
+                if appState.showingOnboarding {
+                    OnboardingView()
+                        .environmentObject(appState)
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing),
+                            removal: .move(edge: .leading)
+                        ))
+                } else {
+                    MainTabView()
+                        .environmentObject(appState)
+                        .preferredColorScheme(appState.currentTheme.colorScheme)
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing),
+                            removal: .move(edge: .leading)
+                        ))
+                }
+            }
+            .animation(.easeInOut(duration: 0.5), value: appState.showingOnboarding)
         }
         .modelContainer(sharedModelContainer)
     }
